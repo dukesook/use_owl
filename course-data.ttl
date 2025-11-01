@@ -1,0 +1,15 @@
+@prefix :      <https://example.org/course#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# People
+:alice a :Student .
+:bob   a :Instructor .
+
+# Bob teaches three courses
+:bob :teaches :AdvancedAI, :ML, :Databases .
+
+# Alice has completed prerequisites
+:alice :completedCourse :IntroAI, :LinearAlgebra .
+
+# Alice is enrolled in AdvancedAI
+:alice :enrolledIn :AdvancedAI .

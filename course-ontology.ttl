@@ -1,0 +1,118 @@
+@prefix :      <https://example.org/course#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# Core Classes
+#################################################################
+
+:Person            a owl:Class .
+:Student           a owl:Class ; rdfs:subClassOf :Person .
+:Instructor        a owl:Class ; rdfs:subClassOf :Person .
+:Course            a owl:Class .
+:GraduateCourse    a owl:Class ; rdfs:subClassOf :Course .
+:UndergradCourse   a owl:Class ; rdfs:subClassOf :Course .
+:AICourse          a owl:Class ; rdfs:subClassOf :Course .
+:Topic             a owl:Class .
+
+#################################################################
+# Object Properties
+#################################################################
+
+:teaches a owl:ObjectProperty ;
+  rdfs:domain :Instructor ;
+  rdfs:range  :Course ;
+  owl:inverseOf :isTaughtBy .
+
+:isTaughtBy a owl:ObjectProperty ;
+  rdfs:domain :Course ;
+  rdfs:range  :Instructor .
+
+:enrolledIn a owl:ObjectProperty ;
+  rdfs:domain :Person ;
+  rdfs:range  :Course .
+
+:hasTopic a owl:ObjectProperty ;
+  rdfs:domain :Course ;
+  rdfs:range  :Topic .
+
+:requiresPrereq a owl:ObjectProperty ;
+  rdfs:domain :Course ;
+  rdfs:range  :Course .
+
+:completedCourse a owl:ObjectProperty ;
+  rdfs:domain :Person ;
+  rdfs:range  :Course .
+
+:eligibleFor a owl:ObjectProperty ;
+  rdfs:domain :Person ;
+  rdfs:range  :Course ;
+  rdfs:comment "Derived via chain: completedCourse o requiresPrereq" ;
+  owl:propertyChainAxiom ( :completedCourse :requiresPrereq ) .
+
+#################################################################
+# Named Courses and Topics
+#################################################################
+
+:AI    a :Topic .
+
+:IntroAI         a :UndergradCourse , :AICourse .
+:LinearAlgebra   a :UndergradCourse .
+:AdvancedAI      a :GraduateCourse , :AICourse ;
+  :requiresPrereq :IntroAI , :LinearAlgebra .
+:ML              a :GraduateCourse , :AICourse ;
+  :requiresPrereq :IntroAI .
+:Databases       a :GraduateCourse .
+
+#################################################################
+# Defined Classes for Reasoning
+#################################################################
+
+# 1.  AI Certificate Student — completed IntroAI and LinearAlgebra
+:AICertificateStudent a owl:Class ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      :Student
+      [ a owl:Restriction ;
+        owl:onProperty :completedCourse ;
+        owl:hasValue :IntroAI ]
+      [ a owl:Restriction ;
+        owl:onProperty :completedCourse ;
+        owl:hasValue :LinearAlgebra ]
+    )
+  ] .
+
+# 2.  AI Instructor — teaches at least one AI course
+:AIInstructor a owl:Class ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      :Instructor
+      [ a owl:Restriction ;
+        owl:onProperty :teaches ;
+        owl:someValuesFrom :AICourse ]
+    )
+  ] .
+
+#################################################################
+# Notes
+#################################################################
+
+# OverloadedInstructor (>=3 courses) is not expressible in OWL RL.
+# You can materialize it using a SPARQL INSERT query if desired:
+#
+# PREFIX : <https://example.org/course#>
+# INSERT { ?inst a :OverloadedInstructor. }
+# WHERE {
+#   ?inst a :Instructor.
+#   { SELECT ?inst (COUNT(DISTINCT ?c) AS ?n)
+#     WHERE { ?inst :teaches ?c. }
+#     GROUP BY ?inst
+#     HAVING (?n >= 3)
+#   }
+# } .
+#
+#################################################################
