@@ -61,9 +61,9 @@
 :IntroAI         a :UndergradCourse , :AICourse .
 :LinearAlgebra   a :UndergradCourse .
 :AdvancedAI      a :GraduateCourse , :AICourse ;
-  :requiresPrereq :IntroAI , :LinearAlgebra .
+                   :requiresPrereq :IntroAI , :LinearAlgebra .
 :ML              a :GraduateCourse , :AICourse ;
-  :requiresPrereq :IntroAI .
+                   :requiresPrereq :IntroAI .
 :Databases       a :GraduateCourse .
 
 #################################################################
